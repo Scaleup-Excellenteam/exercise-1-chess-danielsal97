@@ -8,7 +8,7 @@ class Piece {
 public:
 	virtual ~Piece() = default;
 	char Pname;
-    int is_white_color;
+    bool is_white_color;
 protected:
 	Piece(const char& name):Pname(name){
         if (isupper(name)) is_white_color = 1;
@@ -25,7 +25,7 @@ public:
         return *this;
     }
     virtual int valid_movment(const map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to) const = 0;
-    int getColor() {
+    bool getColor() {
         return is_white_color;
     }
 };

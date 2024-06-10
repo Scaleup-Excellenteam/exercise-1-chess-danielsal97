@@ -4,7 +4,7 @@
 int main()
 {
 	//string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
-	string board = "R######R################################################r######r";
+	string board = "R##K###R################################################r##k###r";
 
 //	string board = "##########K###############################R#############r#r#####";
 	Chess a(board);
@@ -30,7 +30,7 @@ int main()
 
 		/**/ 
 		codeResponse = b.move_piece(res.substr(0, 2), res.substr(2, 4),is_white_turn);
-		//is_white_turn = b.getTurn();
+		is_white_turn = b.getTurn();
 		/**/
 
 		a.setCodeResponse(codeResponse);
