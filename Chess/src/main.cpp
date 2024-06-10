@@ -1,13 +1,17 @@
 // Chess 
 #include "Chess.h"
-
+#include "Board.h"
 int main()
 {
-	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
+	//string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
+	string board = "R######R################################################r######r";
+
 //	string board = "##########K###############################R#############r#r#####";
 	Chess a(board);
+	Board b(board);
 	int codeResponse = 0;
 	string res = a.getInput();
+	bool is_white_turn = true;
 	while (res != "exit")
 	{
 		/* 
@@ -25,10 +29,8 @@ int main()
 		*/
 
 		/**/ 
-		{ // put your code here instead that code
-			cout << "code response >> ";
-			cin >> codeResponse;
-		}
+		codeResponse = b.move_piece(res.substr(0, 2), res.substr(2, 4),is_white_turn);
+		//is_white_turn = b.getTurn();
 		/**/
 
 		a.setCodeResponse(codeResponse);
