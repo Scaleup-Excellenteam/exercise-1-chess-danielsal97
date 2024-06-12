@@ -13,7 +13,15 @@ int Board::move_piece(const std::string& from, const std::string& to, bool is_wh
         BoardGame[to] = BoardGame[from];
         BoardGame[from] = nullptr;
         turn = !turn;
-        return 42;
+        if (BoardGame[to]->getColor())
+            res = BoardGame[to]->checkForCheck(BoardGame, to, black_king);
+        else
+            res = BoardGame[to]->checkForCheck(BoardGame, to, white_king);
+    }
+    if (res == 31) {
+        BoardGame[from] = BoardGame[to];
+        BoardGame[to] = nullptr;
+        turn = !turn;
     }
 
     return res;
