@@ -7,6 +7,7 @@
 
 class King : public Piece {
     int checkForCheck(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& piece_location, const std::string& king_location) const { return 42; };
+    int check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& king_location) const { return 42; }
 public:
     explicit King(char a) : Piece(a) {};
 

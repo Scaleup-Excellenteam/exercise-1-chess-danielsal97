@@ -12,7 +12,7 @@
 class Board {
     std::map<std::string, std::shared_ptr<Piece>> BoardGame;
     bool turn = true;
-    string white_king, black_king;
+    string white_king_location, black_king_location;
 
 public:
     explicit Board(const std::string& start) {
@@ -35,12 +35,12 @@ public:
             if (*strIt == 'K') {
                 std::shared_ptr<King> rook = std::make_shared<King>(*strIt);
                 mapIt->second = rook;
-                white_king = mapIt->first;
+                white_king_location = mapIt->first;
             }
             if (*strIt == 'k') {
                 std::shared_ptr<King> rook = std::make_shared<King>(*strIt);
                 mapIt->second = rook;
-                black_king = mapIt->first;
+                black_king_location = mapIt->first;
             }
             ++mapIt;
             ++strIt;

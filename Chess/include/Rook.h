@@ -67,44 +67,50 @@ int check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>& board
 
     char row = king_location[0];
     char col = king_location[1];
-    for (char i = row ; i <= 'h'; ++i) {
-        string pos = string(1,row) + king_location[1];
+    char king_symbol = board.find(king_location)->second->Pname;
+    int res = 42;
+    for (char i = row +1  ; i <= 'h'; i++) {
+        string pos = string(1,i) + king_location[1];
         auto it = board.find(pos);
-        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor())
+        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor()) {
             return 31;
-        else if (it->second != nullptr and it->second->Pname != board.find(king_location)->second->Pname)
+        }
+        if (it->second != nullptr and it->second->getColor() == board.find(king_location)->second->getColor()) {
             return 42;
+        }
     }
-    for (char i = row ; i <= 'a'; --i) {
-        string pos = string(1, row) + king_location[1];
+    for (char i = row - 1; i >= 'a'; i--) {
+        string pos = string(1, i) + king_location[1];
         auto it = board.find(pos);
-        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor())
+        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor()) {
             return 31;
-        else if (it->second != nullptr and it->second->Pname == board.find(king_location)->second->Pname)
+        }
+        if (it->second != nullptr and it->second->getColor() == board.find(king_location)->second->getColor()) {
             return 42;
+        }
     }
-    for (char i = col ; i <= '8'; ++i) {
-        string pos = king_location[0] + string(1, col);
+    for (char i = col + 1; i <= '8'; i++) {
+        string pos = king_location[0] + string(1, i);
         auto it = board.find(pos);
-    //    if (it->second != nullptr) {
-     //       cout << it->second->Pname << " king location: " << board.find(king_location)->second->Pname;
-       //     cin >> start_row;
-       // }
-        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor())
+        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor()) {
             return 31;
-        else if (it->second != nullptr and it->second->Pname == board.find(king_location)->second->Pname)
+        }
+        if (it->second != nullptr and it->second->getColor() == board.find(king_location)->second->getColor()) {
             return 42;
+        }
     }
-    for (char i = col; i <= '1'; --i) {
-        string pos = king_location[0] + string(1, col);
+    for (char i = col - 1; i >= '1'; i--) {
+        string pos = king_location[0] + string(1, i) ;
         auto it = board.find(pos);
-        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor())
+        if (it->second != nullptr and it->second->getColor() != board.find(king_location)->second->getColor()) {
             return 31;
-        else if (it->second != nullptr and it->second->Pname == board.find(king_location)->second->Pname)
+        }
+        if (it->second != nullptr and it->second->getColor() == board.find(king_location)->second->getColor()) {
             return 42;
+        }
     }
 
-    return 41;
+    return 42;
 }
 
 /// <summary>
@@ -117,40 +123,56 @@ int check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>& board
 int checkForCheck(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& piece_location, const std::string& king_location) const {
     char start = min(piece_location[0], king_location[0]);
     char end = max(piece_location[0], king_location[0]);
-    for (char i = start; i < end ; ++i) {
+    int res = 42;
+    int a;
+    for (char i = start + 1; i < end; i++) {
         string pos = string(1, i) + king_location[1];
         auto it = board.find(pos);
-        if (it->second != nullptr) {
-            return check_cause_check(board, king_location);
-        }
 
-    } 
-    for (char i = end; i < start ; --i) {
+        if (it->second != nullptr && it->second->getColor() != board.find(king_location)->second->getColor() and it->second->Pname != board.find(king_location)->second->Pname) {
+            res = 42;
+        }
+        if (it->second == nullptr) res = 41;
+    }
+    if (res == 41) return 41;
+
+    
+    for (char i = end - 1; i >= start; i--) {
         string pos = string(1, i) + king_location[1];
         auto it = board.find(pos);
-        if (it->second != nullptr) {
-            return check_cause_check(board, king_location);
+        if (it->second != nullptr && it->second->getColor() != board.find(king_location)->second->getColor() and it->second->Pname != board.find(king_location)->second->Pname) {
+            res = 42;
         }
+        if (it->second == nullptr) res = 41;
 
     }
+    if (res == 41) return 41;
 
     start = min(piece_location[1], king_location[1]);
     end = max(piece_location[1], king_location[1]);
-    for (char i = start; i < end ; ++i) {
+    for (char i = start +1; i < end; i++) {
         string pos = king_location[0] + string(1, i);
         auto it = board.find(pos);
-        if (it->second != nullptr) {
-            return check_cause_check(board, king_location);
+
+        if (it->second != nullptr && it->second->getColor() != board.find(king_location)->second->getColor() and it->second->Pname != board.find(king_location)->second->Pname) {
+            res = 42;
         }
+        if (it->second == nullptr) res = 41;
     }
-    for (char i = end; i < start ; --i) {
+    if (res == 41) return 41;
+
+    for (char i = end -1; i > start ; i--) {
         string pos = king_location[0] + string(1, i);
         auto it = board.find(pos);
-        if (it->second != nullptr) {
-            return check_cause_check(board, king_location);
+        if (it->second != nullptr && it->second->getColor() != board.find(king_location)->second->getColor() and it->second->Pname != board.find(king_location)->second->Pname) {
+            res = 42;
         }
+        if (it->second == nullptr) res = 41;
     }
-    return 42;
+    if (res == 41) return 41;
+
+
+    return res;
 }
 
 
