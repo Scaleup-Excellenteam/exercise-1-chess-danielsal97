@@ -3,8 +3,8 @@
 #include "Board.h"
 int main()
 {
-	//string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
-	string board = "R##K###R################################################r#k####r";
+	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
+	//string board = "RNBQKBNR################################################rnbqkbnr";
 
 //	string board = "##########K###############################R#############r#r#####";
 	Chess a(board);

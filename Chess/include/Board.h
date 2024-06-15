@@ -8,47 +8,22 @@
 #include "Piece.h"
 #include "Rook.h"
 #include "King.h"
-
+#include "Bishop.h"
+#include "Queen.h"
+#include "Knight.h"
+#include "Pawn.h"
 class Board {
     std::map<std::string, std::shared_ptr<Piece>> BoardGame;
     bool turn = true;
     string white_king_location, black_king_location;
 
 public:
-    explicit Board(const std::string& start) {
-        // Initialize the board with empty squares
-        for (char row = '1'; row <= '8'; row++) {
-            for (char col = 'a'; col <= 'h'; col++) {
-                std::string key = std::string(1, col) + row;
-                BoardGame[key] = nullptr;
-            }
-        }
-
-        // Place pieces based on the provided string
-        auto mapIt = BoardGame.begin();
-        auto strIt = start.begin();
-        while (mapIt != BoardGame.end() && strIt != start.end()) {
-            if (*strIt == 'R' || *strIt == 'r') {
-                std::shared_ptr<Rook> rook = std::make_shared<Rook>(*strIt);
-                mapIt->second = rook;
-            }
-            if (*strIt == 'K') {
-                std::shared_ptr<King> rook = std::make_shared<King>(*strIt);
-                mapIt->second = rook;
-                white_king_location = mapIt->first;
-            }
-            if (*strIt == 'k') {
-                std::shared_ptr<King> rook = std::make_shared<King>(*strIt);
-                mapIt->second = rook;
-                black_king_location = mapIt->first;
-            }
-            ++mapIt;
-            ++strIt;
-        }
-    }
+    explicit Board(const std::string& start);
 
     int move_piece(const std::string& from, const std::string& to, bool is_white_turn);
     bool getTurn();
+    int check_cause_checkmate(const std::map<std::string, std::shared_ptr<Piece>>& board, const string& king_location);
+    int check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>& board, const string& king_location);
 };
 
 #endif // BOARD_H

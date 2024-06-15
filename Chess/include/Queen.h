@@ -1,15 +1,17 @@
-// Rook.h
-#ifndef KING_H
-#define KING_H
+
+#ifndef QUEEN_H
+#define QUEEN_H
 
 #include "Piece.h"
 #include <string>
 
-class King : public Piece {
+class Queen : public Piece {
 
 public:
-    explicit King(char a) : Piece(a) {};
+    explicit Queen(char a) : Piece(a) {};
 
     int valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to);
+
+
 };
-#endif // ROOK_H
+#endif 

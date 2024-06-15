@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <iostream>
 using namespace std;
 class Piece {
 public:
@@ -24,9 +25,8 @@ public:
         }
         return *this;
     }
-    virtual int valid_movment(const map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to) const = 0;
-    virtual int checkForCheck(const map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& king_location) const = 0;
-    virtual int check_cause_check(const map<std::string, std::shared_ptr<Piece>>& board, const std::string& king_location) const = 0;
+    virtual int valid_movment(const map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to)  = 0;
+
     bool getColor() {
         return is_white_color;
     }
