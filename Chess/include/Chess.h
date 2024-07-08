@@ -28,6 +28,7 @@ class Chess {
 	bool isSame() const;
 	bool isValid() const;
 	bool isExit() const;
+	void excuteCasteling();
 	void excute();
 	void doTurn();
 

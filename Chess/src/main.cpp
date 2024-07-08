@@ -3,7 +3,7 @@
 #include "Board.h"
 int main()
 {
-	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
+	string board = "R###KBNRPqPPPPPP################################pppppppprnbqkbnr"; 
 	//string board = "RNBQKBNR################################################rnbqkbnr";
 
 //	string board = "##########K###############################R#############r#r#####";
@@ -15,6 +15,9 @@ int main()
 	while (res != "exit")
 	{
 		/* 
+		TODO:
+		1. create enum for the following codevalues:
+
 		codeResponse value : 
 		Illegal movements : 
 		11 - there is not piece at the source  
@@ -26,6 +29,7 @@ int main()
 		legal movements : 
 		41 - the last movement was legal and cause check 
 		42 - the last movement was legal, next turn 
+		44 - checkmate
 		*/
 
 		/**/ 

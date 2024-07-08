@@ -138,6 +138,36 @@ bool Chess::isExit() const
 {
 	return ((m_input == "exit") || (m_input == "quit") || (m_input == "EXIT") || (m_input == "QUIT"));
 }
+
+// execute the casteling for both sides movement on board 
+void Chess::excuteCasteling()
+{
+	int row = m_input[0] - 'a';
+	int fromCol = m_input[1] - '1';
+	int toCol = m_input[3] - '1';
+	int colDifference = std::abs(toCol - fromCol);
+
+	int rookCol = min(fromCol, toCol);
+	int kingCol = max(fromCol, toCol);
+
+	if (colDifference == 4) {
+		m_boardString[row * 8 + (rookCol + 3)] = m_boardString[(row * 8) + fromCol];
+		m_boardString[row * 8 + (kingCol - 2)] = m_boardString[(row * 8) + toCol];
+		m_boardString[row * 8 + rookCol] = '#';
+		m_boardString[row * 8 + kingCol] = '#';
+	}
+	else if (colDifference == 3) { 
+		m_boardString[row * 8 + (rookCol + 2)] = m_boardString[(row * 8) + fromCol];
+		m_boardString[row * 8 + (kingCol - 2)] = m_boardString[(row * 8) + toCol];
+		m_boardString[row * 8 + rookCol] = '#';
+		m_boardString[row * 8 + kingCol] = '#';
+	}
+
+	setPieces(); 
+
+
+}
+
 // execute the movement on board 
 void Chess::excute()
 {
@@ -197,6 +227,20 @@ void Chess::doTurn()
 		m_msg = "the last movement was legal \n";
 		break;
 	}
+	case 43:
+	{
+		excuteCasteling();
+		m_turn = !m_turn;
+		m_msg = "the last movment was legal - Castling\n";
+		break;
+	}
+	
+	case 44:
+	{
+		m_msg = "checkMate ";
+		cout << "game is finished";
+		exit(0);
+	}
 	}
 }
 
@@ -252,6 +296,6 @@ void Chess::setCodeResponse(int codeResponse)
 {
 	if (((11 <= codeResponse) && (codeResponse <= 13)) ||
 		((21 == codeResponse) || (codeResponse == 31)) ||
-		((41 == codeResponse) || (codeResponse == 42)))
+		((41 == codeResponse) || (codeResponse == 42) || (codeResponse == 43) || (codeResponse == 44)))
 		m_codeResponse = codeResponse;
 }
