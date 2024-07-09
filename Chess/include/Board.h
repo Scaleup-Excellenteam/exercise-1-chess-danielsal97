@@ -28,18 +28,18 @@ class Board {
     {"a5a8", {"a5", "a6", "a7", "a8"}},
     {"h5h8", {"h5", "h6", "h7", "h8"}}
     };
-    int king_in_check = 2;
-    bool check_flag = false;
+    bool black_check_flag = false;
+    bool white_check_flag = false;
 public:
     enum  MoveResult {
-        Success =   0,
         NoPieceAtSource = 11,
         NotYourTurn = 12,
         InvalidDestination = 13,
         InvalidMovement = 21,
         ImmediateCheck = 31,
         CheckToOpponent = 41,
-        MoveCompleted = 42,
+        validMovement = 42,
+        valid_casteling = 43,
         Checkmate = 44
     };
     explicit Board(const std::string& start);
@@ -58,8 +58,11 @@ public:
     int validate_move(const std::string& from, const std::string& to, bool is_white_turn);
     void perform_move(const std::string& from, const std::string& to);
     int check_opponent_check(bool is_white_turn);
-    void undo_move(const std::string& from, const std::string& to);
+    void undo_move(const std::string& from, const std::string& to, const shared_ptr<Piece>& original_from, const shared_ptr<Piece>& original_to);
     int check_for_self_checkmate(bool is_white_turn, const std::map<std::string, std::shared_ptr<Piece>>& board);
+    bool is_castling_allowed(bool is_white_turn) const;
+    bool has_piece_moved(const std::string& position, const std::map<std::string, std::shared_ptr<Piece>>& board) const;
+    void set_check_flag(bool is_white_turn);
 };
 
 #endif // BOARD_H

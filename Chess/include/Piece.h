@@ -27,7 +27,9 @@ public:
         return *this;
     }
     virtual int valid_movment(const map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to)  = 0;
-
+    void set_has_checked() {
+        has_checked = true;
+    }
     const bool getColor() {
         return is_white_color;
     }
