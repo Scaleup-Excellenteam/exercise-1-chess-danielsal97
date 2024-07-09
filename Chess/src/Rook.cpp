@@ -13,6 +13,7 @@ int Rook::valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& boa
                 return 21;
             }
         }
+        has_moved = true;
         return 42;
 
     }
@@ -36,7 +37,7 @@ int Rook::valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& boa
                 return 21;
             }
         }
-
+        has_moved = true;
         return 42;
     }
     else  return 21;

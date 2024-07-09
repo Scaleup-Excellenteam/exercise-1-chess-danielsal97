@@ -16,4 +16,5 @@ int Bishop::valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& b
         }
         return 42;
     }
+    return 21;
 }

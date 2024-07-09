@@ -51,16 +51,15 @@ public:
     void change_turn();
     void make_move(const string& from, const string& to);
     void update_king_location(const string& from, const string& to);
-    int castling(const string& from, const string& to);
+    int casteling(const std::string& from, const std::string& to, bool is_white_turn, std::map<std::string, std::shared_ptr<Piece>>& board);
     bool is_clear_path(const string& from, const string& to);
     bool are_casteling_piece(const string& from, const string& to);
-    int check_Checkmate(bool is_white_turn);
+    int check_Checkmate(bool is_white_turn, map<std::string, std::shared_ptr<Piece>>& board);
     int validate_move(const std::string& from, const std::string& to, bool is_white_turn);
     void perform_move(const std::string& from, const std::string& to);
     int check_opponent_check(bool is_white_turn);
     void undo_move(const std::string& from, const std::string& to);
-    int check_for_self_checkmate(bool is_white_turn);
-    void print_board();
+    int check_for_self_checkmate(bool is_white_turn, const std::map<std::string, std::shared_ptr<Piece>>& board);
 };
 
 #endif // BOARD_H

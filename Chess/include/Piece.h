@@ -16,7 +16,8 @@ protected:
         else is_white_color = 0;
     }
 public:
-
+    bool has_moved = false;
+    bool has_checked = false;
 	Piece() = default;
     Piece& operator=(const Piece& other) {
         // Handle self-assignment
@@ -27,7 +28,7 @@ public:
     }
     virtual int valid_movment(const map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to)  = 0;
 
-    bool getColor() {
+    const bool getColor() {
         return is_white_color;
     }
 };

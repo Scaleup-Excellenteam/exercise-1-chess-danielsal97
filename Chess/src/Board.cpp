@@ -72,15 +72,22 @@ std::shared_ptr<Piece> Board::createPiece(char pieceType) {
 /// <param name="is_white_turn"> which player is playing, helps to know whose turn is now and to set the next turn </param>
 /// <returns></returns>
 int Board::move_piece(const std::string& from, const std::string& to, bool is_white_turn) {
-    int validation_res = validate_move(from, to, is_white_turn);
+    int validation_res = check_Checkmate(is_white_turn, BoardGame);
     if (validation_res != 42) return validation_res;
-    validation_res = check_Checkmate(is_white_turn);
+
+    if (are_casteling_piece(from, to)) {
+        validation_res = casteling(from, to, is_white_turn, BoardGame);
+    }
     if (validation_res != 42) return validation_res;
+
+    validation_res = validate_move(from, to, is_white_turn);
+    if (validation_res != 42) return validation_res;
+
     perform_move(from, to);
- 
-    validation_res = (check_for_self_checkmate(is_white_turn));
-   
-    if(validation_res == 31){
+
+    validation_res = (check_for_self_checkmate(is_white_turn, BoardGame));
+
+    if (validation_res == 31) {
         undo_move(to, from);
 
         return validation_res;
@@ -113,7 +120,7 @@ bool Board::getTurn() {
 /// <param name="king_location"> get opponent king location</param>
 /// <returns></returns>
 int Board::check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>& board, const string& king_location) {
-    int king_color = BoardGame[king_location]->getColor();
+    bool king_color = BoardGame[king_location]->getColor();
     for (const auto& piece : board) {
         if (BoardGame[piece.first] != nullptr and BoardGame[piece.first]->getColor() != king_color and BoardGame[piece.first]->valid_movment(board, piece.first, king_location) == 42) {
             return 41;
@@ -130,13 +137,21 @@ int Board::check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>
 /// <param name="board">get the gae board</param>
 /// <param name="king_location"> get the player king location</param>
 /// <returns></returns>
-int Board::check_cause_checkmate(const std::map<std::string, std::shared_ptr<Piece>>& board, const string& king_location) {
-    int king_color = BoardGame[king_location]->getColor();
-    for (const auto& piece : BoardGame)
-        if (BoardGame[piece.first] != nullptr and BoardGame[piece.first]->getColor() != king_color and BoardGame[piece.first]->valid_movment(board, piece.first, king_location) == 42) {
-            return 31;
+int Board::check_cause_checkmate(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& king_location) {
+    if (board.find(king_location) == board.end() || board.at(king_location) == nullptr) {
+        std::cerr << "Error: King location is invalid or king is nullptr" << std::endl;
+        return 42; // Indicate error or invalid state
+    }
+
+    bool king_color = board.at(king_location)->getColor();
+    for (const auto& piece : board) {
+        if (piece.second == nullptr) continue;
+        if (piece.second->getColor() != king_color && piece.second->valid_movment(board, piece.first, king_location) == 42) {
+            return 31; // Checkmate
         }
-    return 42;
+    }
+
+    return 42; // No checkmate
 }
 void Board::change_turn() {
     turn = !turn;
@@ -157,6 +172,7 @@ void Board::make_move(const std::string& from, const std::string& to) {
 }
 
 void Board::update_king_location(const string& from, const string& to) {
+    char king_type = BoardGame[from]->Pname;
     if (BoardGame[from]->Pname == 'K') {
         white_king_location = to;
     }
@@ -184,60 +200,90 @@ bool Board::are_casteling_piece(const std::string& from, const std::string& to) 
 
 
 
-int Board::castling(const std::string& from, const std::string& to) {
+int Board::casteling(const std::string& from, const std::string& to, bool is_white_turn, std::map<std::string, std::shared_ptr<Piece>>& board) {
     std::string command = from + to;
     if (from > to) {
         command = to + from;
     }
-    if (!are_casteling_piece(from, to)) return 21;
     else if (is_clear_path(command.substr(0, 2), command.substr(2, 2))) {
         auto it = castlingMoves.find(command);
         if (it != castlingMoves.end()) {
             const auto& move = it->second;
-            update_king_location(move.kingFrom, move.kingTo); 
+
+            update_king_location(move.kingFrom, move.kingTo);
+            auto temp_kingTo = BoardGame[move.kingTo];
+            auto temp_rookTo = BoardGame[move.rookTo];
             BoardGame[move.kingTo] = BoardGame[move.kingFrom];
             BoardGame[move.kingFrom] = nullptr;
             BoardGame[move.rookTo] = BoardGame[move.rookFrom];
             BoardGame[move.rookFrom] = nullptr;
-            change_turn(); 
-            return 43; 
+            change_turn();
+            int validation_res = (check_for_self_checkmate(is_white_turn, board));
+            if (validation_res == 42) return 43;
+            update_king_location(move.kingTo, move.kingFrom);
+
+            BoardGame[move.kingFrom] = BoardGame[move.kingTo];
+            BoardGame[move.kingTo] = temp_kingTo;
+            BoardGame[move.rookFrom] = BoardGame[move.rookTo];
+            BoardGame[move.rookTo] = temp_rookTo;
+            change_turn();
+
+            return 31;
         }
     }
-    return 21;  
+    return 21;
 }
 
+int Board::check_Checkmate(bool is_white_turn, std::map<std::string, std::shared_ptr<Piece>>& board) {
+    std::string king_loc = is_white_turn ? white_king_location : black_king_location;
 
-int Board::check_Checkmate(bool is_white_turn) {
-    int ret = 44;
-    string king_loc = is_white_turn ? white_king_location : black_king_location;
-
-    for (const auto& piece : BoardGame) {
+    for (const auto& piece : board) {
         if (piece.second == nullptr || piece.second->getColor() != is_white_turn) continue;
 
-        string from = piece.first;
+        std::string from = piece.first;
 
-        for (const auto& sec_piece : BoardGame) {
-            if (piece.second == nullptr || piece.second->getColor() != is_white_turn) continue;
-
-            string to = sec_piece.first;
+        for (const auto& sec_piece : board) {
+            std::string to = sec_piece.first;
             if (from == to) continue;
 
             int validation_res = validate_move(from, to, is_white_turn);
             if (validation_res != 42) continue;
 
-            int move_result = piece.second->valid_movment(BoardGame, from, to);
-            if (move_result != 42) continue;
+            // Simulate the move on a copy of the board
+            auto originalFrom = board[from];
+            auto originalTo = board[to];
+            update_king_location(from, to);
+            board[to] = board[from];
+            board[from] = nullptr;
 
-            perform_move(from, to);
-            validation_res = (check_for_self_checkmate(is_white_turn));
-            undo_move(to, from);
-            if (validation_res == 42) return validation_res;
+            // Check for self checkmate on the temporary board
+            int move_result = check_for_self_checkmate(is_white_turn, board);
+
+            // Undo the move
+            update_king_location(to, from);
+
+            board[from] = originalFrom;
+            board[to] = originalTo;
+
+            if (move_result == 42) {
+                //      int a;
+                  //    cout <<endl<< "from: " << from << " to: " << to<<endl;
+                    //  cin >> a;
+                return 42; // Found a valid move to avoid checkmate
+            }
         }
     }
-    cout << "Checkmate detected for " << (is_white_turn ? "white" : "black") << std::endl;
-    cout << "the winner is: "<<(!is_white_turn ? "white" : "black")  << endl;
-    return ret; 
+
+    std::cout << "Checkmate detected for " << (is_white_turn ? "white" : "black") << std::endl;
+    std::cout << "The winner is: " << (!is_white_turn ? "white" : "black") << std::endl;
+    return 44; // Checkmate
 }
+
+int Board::check_for_self_checkmate(bool is_white_turn, const std::map<std::string, std::shared_ptr<Piece>>& board) {
+    return check_cause_checkmate(board, is_white_turn ? white_king_location : black_king_location);
+}
+
+
 
 int Board::check_opponent_check(bool is_white_turn) {
     if (is_white_turn) {
@@ -246,12 +292,5 @@ int Board::check_opponent_check(bool is_white_turn) {
     else {
         return check_cause_check(BoardGame, white_king_location);
     }
-}
-int Board::check_for_self_checkmate(bool is_white_turn) {
-    int self_checkmate_res = 42;
-    if(is_white_turn)
-        self_checkmate_res = check_cause_checkmate(BoardGame , white_king_location);
-    else 
-        self_checkmate_res = check_cause_checkmate(BoardGame, black_king_location);
-    return self_checkmate_res;
+
 }

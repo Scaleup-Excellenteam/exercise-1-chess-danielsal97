@@ -20,7 +20,7 @@ public:
 /// <param name="to"></param>
 /// <returns></returns>
     int valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to);
-    bool is_firstmove() {
+    const  bool is_firstmove() {
         return firstMove;
     }
 };
