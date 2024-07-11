@@ -28,8 +28,7 @@ class Board {
     {"a5a8", {"a5", "a6", "a7", "a8"}},
     {"h5h8", {"h5", "h6", "h7", "h8"}}
     };
-    bool black_check_flag = false;
-    bool white_check_flag = false;
+    bool black_check_flag = false, white_check_flag = false;
 public:
     enum  MoveResult {
         NoPieceAtSource = 11,
@@ -63,6 +62,10 @@ public:
     bool is_castling_allowed(bool is_white_turn) const;
     bool has_piece_moved(const std::string& position, const std::map<std::string, std::shared_ptr<Piece>>& board) const;
     void set_check_flag(bool is_white_turn);
+    map<string, bool> check_has_piece_moved();
+    void revert_has_moved_changes(map<string, bool> locations);
+    void revert_checkmate_flags(bool is_white_turn);
+    void revert_casteling_flags(map<string, bool> locations, bool is_white_turn);
 };
 
 #endif // BOARD_H

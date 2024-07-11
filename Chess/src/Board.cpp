@@ -1,6 +1,6 @@
 #include "Board.h"
 
-
+#include <array>
 /// <summary>
 /// initilize board:
 /// 1. create keys values for board game
@@ -53,16 +53,21 @@ std::shared_ptr<Piece> Board::createPiece(char pieceType) {
 /// <param name="is_white_turn"> which player is playing, helps to know whose turn is now and to set the next turn </param>
 /// <returns></returns>
 int Board::move_piece(const std::string& from, const std::string& to, bool is_white_turn) {
+    map<string,bool> original_moves_data = check_has_piece_moved();
     int validation_res = check_Checkmate(is_white_turn, BoardGame);
     if (validation_res != validMovement) { 
         is_white_turn ? white_check_flag = true : black_check_flag = true;
-
         return validation_res; }
+    
+    revert_casteling_flags(original_moves_data, is_white_turn);
 
     if (are_casteling_piece(from, to)) {
         validation_res = casteling(from, to, is_white_turn, BoardGame);
     }
-    if (validation_res != validMovement) return validation_res;
+
+    if (validation_res != validMovement) {
+        return validation_res;
+    }
 
     validation_res = validate_move(from, to, is_white_turn);
     if (validation_res != validMovement) return validation_res;
@@ -73,11 +78,13 @@ int Board::move_piece(const std::string& from, const std::string& to, bool is_wh
     validation_res = (check_for_self_checkmate(is_white_turn, BoardGame));
     if (validation_res == ImmediateCheck) {
         undo_move(to, from, original_form, original_to);
+        revert_casteling_flags(original_moves_data, is_white_turn);
+
         is_white_turn ? white_check_flag = true : black_check_flag = true;
-        
         return validation_res;
     }
     int opponent_check_res = check_opponent_check(is_white_turn);
+
     set_check_flag(is_white_turn);
     return opponent_check_res;
 
@@ -106,7 +113,8 @@ bool Board::getTurn() {
 int Board::check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>& board, const string& king_location) {
     bool king_color = BoardGame[king_location]->getColor();
     for (const auto& piece : board) {
-        if (BoardGame[piece.first] != nullptr and BoardGame[piece.first]->getColor() != king_color and BoardGame[piece.first]->valid_movment(board, piece.first, king_location) == validMovement) {
+        auto p = BoardGame[piece.first];
+        if (p != nullptr && p->getColor() != king_color && p->valid_movment(board, piece.first, king_location) == validMovement) {
             return CheckToOpponent;
         }
     }
@@ -178,7 +186,7 @@ int Board::casteling(const std::string& from, const std::string& to, bool is_whi
     if (from > to) {
         command = to + from;
     }
-    else if (is_clear_path(command.substr(0, 2), command.substr(2, 2))) {
+    if (is_clear_path(command.substr(0, 2), command.substr(2, 2))) {
         auto it = castlingMoves.find(command);
         if (it != castlingMoves.end()) {
             const auto& move = it->second;
@@ -270,6 +278,31 @@ bool Board::is_castling_allowed(bool is_white_turn) const {
 bool Board::has_piece_moved(const std::string& position, const std::map<std::string, std::shared_ptr<Piece>>& board) const {
     return board.at(position)->has_moved;
 }
+map<string,bool> Board::check_has_piece_moved()  {
+    std::array<std::string, 6> locations = { "a1", "a5", "a8", "h1", "h5", "h8" };
+    map<string, bool> check;
+
+    for (const auto& loc : locations) {
+        if (BoardGame[loc] == nullptr) continue;
+        if (!BoardGame[loc]->has_moved)
+            check[loc] = false;
+    }
+    return check;
+}
+void Board::revert_has_moved_changes(map<string,bool> locations) {
+    for (const auto& piece : locations) {
+        if (BoardGame[piece.first] == nullptr) continue;
+        BoardGame[piece.first]->has_moved = false;
+    }
+
+}
 void Board::set_check_flag(bool is_white_turn) {
     is_white_turn ? white_check_flag = true : black_check_flag = true;
+}
+void Board::revert_checkmate_flags(bool is_white_turn) {
+    is_white_turn ? white_check_flag = false : black_check_flag = false;
+}
+void Board::revert_casteling_flags(map<string, bool> locations,bool is_white_turn) {
+    revert_has_moved_changes(locations);
+    revert_checkmate_flags(is_white_turn);
 }
