@@ -253,7 +253,7 @@ Chess::Chess(const string& start)
 }
 
 // get the source and destination 
-string Chess::getInput()
+string Chess::getInput(const string& suggestedMove)
 {
 	static bool isFirst = true;
 
@@ -263,6 +263,7 @@ string Chess::getInput()
 		doTurn(); 
 
 	displayBoard();
+	cout<< suggestedMove <<endl;
 	showAskInput();
 
 	cin >> m_input;

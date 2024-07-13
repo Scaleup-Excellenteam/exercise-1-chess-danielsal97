@@ -9,7 +9,7 @@ class Rook : public Piece {
     bool firstMove;
 
 public:
-    explicit Rook(char a) : Piece(a) {
+    explicit Rook(char a) : Piece(a, 5) {
         firstMove = true;
     };
 /// <summary>

@@ -1,45 +1,31 @@
 #include "Rook.h"
+#include "path_helpers.h"
 
+/// <summary>
+/// Checks if the Rook's movement is valid
+/// </summary>
+/// <param name="board"> The game board </param>
+/// <param name="from"> The starting position of the Rook </param>
+/// <param name="to"> The target position of the Rook </param>
+/// <returns> Status code indicating if the movement is valid or not </returns>
 int Rook::valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to) {
-
     if (from[0] == to[0]) {
-        char start = min(from[1], to[1]);
-        char end = max(from[1], to[1]);
+        char start = std::min(from[1], to[1]);
+        char end = std::max(from[1], to[1]);
 
-        for (char i = start + 1; i < end; ++i) {
-            string pos = from[0] + string(1, i);
-            auto it = board.find(pos);
-            if (it->second != nullptr) {
-                return 21;
-            }
+        if (isPathClearVerticalHorizontal(board, from[0], start, end, true)) {
+            has_moved = true; 
+            return validMovement;
         }
-        has_moved = true;
-        return 42;
-
     }
     else if (from[1] == to[1]) {
-        char start = min(from[0], to[0]);
-        char end = max(from[0], to[0]);
-        char king_check;
-        if (board.find(from)->second->getColor())
-            king_check = 'k';
-        else
-            king_check = 'K';
+        char start = std::min(from[0], to[0]);
+        char end = std::max(from[0], to[0]);
 
-        for (char i = start + 1; i < end; ++i) {
-
-            string pos = string(1, i) + to[1];
-
-            auto it = board.find(pos);
-
-
-            if (it->second != nullptr) {
-                return 21;
-            }
+        if (isPathClearVerticalHorizontal(board, from[1], start, end, false)) {
+            has_moved = true; 
+            return validMovement;
         }
-        has_moved = true;
-        return 42;
     }
-    else  return 21;
-
+    return InvalidMovement;
 }

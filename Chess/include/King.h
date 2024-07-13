@@ -9,7 +9,7 @@ class King : public Piece {
     int firstMove;
 
 public:
-    explicit King(char a) : Piece(a) {
+    explicit King(char a) : Piece(a,200) {
         firstMove = 1;
     };
 

@@ -2,11 +2,11 @@
 
 #include <array>
 /// <summary>
-/// initilize board:
-/// 1. create keys values for board game
-/// 2. go over "start" and init the game board with all pieces 
+/// Initializes the board:
+/// 1. Creates keys for the board game
+/// 2. Goes over the "start" string and initializes the game board with all pieces 
 /// </summary>
-/// <param name="start"> indicte to the start string for init the board</param>
+/// <param name="start"> Indicates the start string for initializing the board</param>
 
 Board::Board(const std::string& start) {
     for (char row = '1'; row <= '8'; row++) {
@@ -22,7 +22,7 @@ Board::Board(const std::string& start) {
         char pieceType = *strIt;
         mapIt->second = createPiece(pieceType);
         update_king_location(mapIt->first, mapIt->first);
-    
+
         ++mapIt;
         ++strIt;
     }
@@ -40,25 +40,25 @@ std::shared_ptr<Piece> Board::createPiece(char pieceType) {
     default: return nullptr;
     }
 }
+
 /// <summary>
-/// this section of code makes move if legal and returns message val
-/// it maing moves by logic so after it makes move, it checks if the move is legal:
-/// 1. if the move will casue self  checkmate it will undo it and return to user 31 signal
-/// 2. if the move will cause check to the opponent it will return 41 signal
-/// 3. else it will return validMovement signal
-/// 
+/// Makes a move if legal and returns a status code:
+/// 1. If the move will cause self-checkmate, it will undo it and return a signal of 31
+/// 2. If the move will cause check to the opponent, it will return a signal of 41
+/// 3. Otherwise, it will return validMovement signal
 /// </summary>
-/// <param name="from"> get the location of piece you want to move </param>
-/// <param name="to"> get your target location  </param>
-/// <param name="is_white_turn"> which player is playing, helps to know whose turn is now and to set the next turn </param>
-/// <returns></returns>
+/// <param name="from"> Location of the piece you want to move </param>
+/// <param name="to"> Target location </param>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <returns> Status code indicating the result of the move </returns>
 int Board::move_piece(const std::string& from, const std::string& to, bool is_white_turn) {
-    map<string,bool> original_moves_data = check_has_piece_moved();
+    map<string, bool> original_moves_data = check_has_piece_moved();
     int validation_res = check_Checkmate(is_white_turn, BoardGame);
-    if (validation_res != validMovement) { 
+    if (validation_res != validMovement) {
         is_white_turn ? white_check_flag = true : black_check_flag = true;
-        return validation_res; }
-    
+        return validation_res;
+    }
+
     revert_casteling_flags(original_moves_data, is_white_turn);
 
     if (are_casteling_piece(from, to)) {
@@ -87,29 +87,35 @@ int Board::move_piece(const std::string& from, const std::string& to, bool is_wh
 
     set_check_flag(is_white_turn);
     return opponent_check_res;
-
 }
 
+/// <summary>
+/// Validates the move from the source to the destination
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <returns> Status code indicating if the move is valid or not </returns>
 int Board::validate_move(const std::string& from, const std::string& to, bool is_white_turn) {
     if (BoardGame[from] == nullptr) return NoPieceAtSource;
     if (BoardGame[from]->getColor() != is_white_turn) return NotYourTurn;
     if (BoardGame[to] != nullptr && BoardGame[from]->getColor() == BoardGame[to]->getColor()) return InvalidDestination; // Same color at destination
 
     int res = BoardGame[from]->valid_movment(BoardGame, from, to);
-    if (res != validMovement) return res; 
-    return validMovement; 
+    if (res != validMovement) return res;
+    return validMovement;
 }
 
 bool Board::getTurn() {
     return turn;
 }
+
 /// <summary>
-/// checks if there is check on your opponent king.
-///   itterate over  player pieces and check if there valid move on his king
+/// Checks if there is a check on the opponent's king by iterating over player pieces and checking if there is a valid move on the opponent's king
 /// </summary>
-/// <param name="board"> get the borad game.</param>
-/// <param name="king_location"> get opponent king location</param>
-/// <returns></returns>
+/// <param name="board"> The game board </param>
+/// <param name="king_location"> Opponent king location </param>
+/// <returns> Status code indicating if there is a check on the opponent's king </returns>
 int Board::check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>& board, const string& king_location) {
     bool king_color = BoardGame[king_location]->getColor();
     for (const auto& piece : board) {
@@ -122,16 +128,15 @@ int Board::check_cause_check(const std::map<std::string, std::shared_ptr<Piece>>
 }
 
 /// <summary>
-/// check if there is any check of the player king.
-/// itterate over opponent pieces and check if there valid move on player king
+/// Checks if there is a checkmate on the player's king by iterating over opponent pieces and checking if there is a valid move on the player's king
 /// </summary>
-/// <param name="board">get the gae board</param>
-/// <param name="king_location"> get the player king location</param>
-/// <returns></returns>
+/// <param name="board"> The game board </param>
+/// <param name="king_location"> The player's king location </param>
+/// <returns> Status code indicating if there is a checkmate on the player's king </returns>
 int Board::check_cause_checkmate(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& king_location) {
     if (board.find(king_location) == board.end() || board.at(king_location) == nullptr) {
         std::cerr << "Error: King location is invalid or king is nullptr" << std::endl;
-        return validMovement; 
+        return validMovement;
     }
     bool king_color = board.at(king_location)->getColor();
     for (const auto& piece : board) {
@@ -141,18 +146,31 @@ int Board::check_cause_checkmate(const std::map<std::string, std::shared_ptr<Pie
         }
     }
 
-    return validMovement; 
+    return validMovement;
 }
+
+/// <summary>
+/// Changes the turn to the next player
+/// </summary>
 void Board::change_turn() {
     turn = !turn;
 }
 
+/// <summary>
+/// Performs the move from the source to the destination and updates the king's location if necessary
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
 void Board::perform_move(const std::string& from, const std::string& to) {
     update_king_location(from, to);
     make_move(from, to);
 }
 
-
+/// <summary>
+/// Updates the king's location if the move involves a king
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
 void Board::update_king_location(const string& from, const string& to) {
     if (BoardGame[from] == nullptr) return;
     char king_type = BoardGame[from]->Pname;
@@ -164,6 +182,12 @@ void Board::update_king_location(const string& from, const string& to) {
     }
 }
 
+/// <summary>
+/// Checks if the path is clear for a move from the source to the destination
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
+/// <returns> True if the path is clear, false otherwise </returns>
 bool Board::is_clear_path(const string& from, const string& to) {
     char row = from[0];
     for (char col = from[1] + 1; col < to[1]; col++) {
@@ -172,6 +196,13 @@ bool Board::is_clear_path(const string& from, const string& to) {
     }
     return true;
 }
+
+/// <summary>
+/// Checks if the move involves castling
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
+/// <returns> True if the move involves castling, false otherwise </returns>
 bool Board::are_casteling_piece(const std::string& from, const std::string& to) {
     auto fromPiece = BoardGame[from];
     auto toPiece = BoardGame[to];
@@ -180,7 +211,14 @@ bool Board::are_casteling_piece(const std::string& from, const std::string& to) 
         (dynamic_cast<Rook*>(fromPiece.get()) && dynamic_cast<King*>(toPiece.get()));
 }
 
-
+/// <summary>
+/// Handles the castling move
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <param name="board"> The game board </param>
+/// <returns> Status code indicating the result of the castling move </returns>
 int Board::casteling(const std::string& from, const std::string& to, bool is_white_turn, std::map<std::string, std::shared_ptr<Piece>>& board) {
     std::string command = from + to;
     if (from > to) {
@@ -197,7 +235,7 @@ int Board::casteling(const std::string& from, const std::string& to, bool is_whi
                 return InvalidMovement;
             }
             update_king_location(move.kingFrom, move.kingTo);
-            //store original values, for undoing it in cases that move casue check 
+            //store original values, for undoing it in cases that move cause check 
             auto temp_kingFrom = BoardGame[move.kingFrom];
             auto temp_kingTo = BoardGame[move.kingTo];
             auto temp_rookFrom = BoardGame[move.rookFrom];
@@ -219,6 +257,12 @@ int Board::casteling(const std::string& from, const std::string& to, bool is_whi
     return InvalidMovement;
 }
 
+/// <summary>
+/// Checks if the current player's king is in checkmate
+/// </summary>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <param name="board"> The game board </param>
+/// <returns> Status code indicating if the current player's king is in checkmate </returns>
 int Board::check_Checkmate(bool is_white_turn, std::map<std::string, std::shared_ptr<Piece>>& board) {
     std::string king_loc = is_white_turn ? white_king_location : black_king_location;
 
@@ -246,39 +290,78 @@ int Board::check_Checkmate(bool is_white_turn, std::map<std::string, std::shared
     }
     cout << "Checkmate detected for " << (is_white_turn ? "white" : "black") << endl;
     cout << "The winner is: " << (!is_white_turn ? "white" : "black") << endl;
-   
-    return Checkmate; 
+
+    return Checkmate;
 }
 
+/// <summary>
+/// Checks if a move will result in self-checkmate
+/// </summary>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <param name="board"> The game board </param>
+/// <returns> Status code indicating if a move will result in self-checkmate </returns>
 int Board::check_for_self_checkmate(bool is_white_turn, const std::map<std::string, std::shared_ptr<Piece>>& board) {
-
     return check_cause_checkmate(board, is_white_turn ? white_king_location : black_king_location);
 }
 
-
-
+/// <summary>
+/// Checks if the opponent's king is in check
+/// </summary>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <returns> Status code indicating if the opponent's king is in check </returns>
 int Board::check_opponent_check(bool is_white_turn) {
     return check_cause_check(BoardGame, is_white_turn ? black_king_location : white_king_location);
 }
+
+/// <summary>
+/// Undoes a move and reverts the board to its previous state
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
+/// <param name="fromPiece"> Piece at the source location before the move </param>
+/// <param name="toPiece"> Piece at the destination location before the move </param>
 void Board::undo_move(const std::string& from, const std::string& to, const shared_ptr<Piece>& fromPiece, const shared_ptr<Piece>& toPiece) {
     update_king_location(to, from);
     BoardGame[from] = fromPiece;
     BoardGame[to] = toPiece;
     change_turn();
 }
+
+/// <summary>
+/// Makes a move from the source to the destination
+/// </summary>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
 void Board::make_move(const std::string& from, const std::string& to) {
     BoardGame[to] = BoardGame[from];
     BoardGame[from] = nullptr;
     change_turn();
 }
+
+/// <summary>
+/// Checks if castling is allowed for the current player
+/// </summary>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <returns> True if castling is allowed, false otherwise </returns>
 bool Board::is_castling_allowed(bool is_white_turn) const {
     return !(is_white_turn ? white_check_flag : black_check_flag);
 }
 
+/// <summary>
+/// Checks if a piece at a given position has moved
+/// </summary>
+/// <param name="position"> Position of the piece </param>
+/// <param name="board"> The game board </param>
+/// <returns> True if the piece has moved, false otherwise </returns>
 bool Board::has_piece_moved(const std::string& position, const std::map<std::string, std::shared_ptr<Piece>>& board) const {
     return board.at(position)->has_moved;
 }
-map<string,bool> Board::check_has_piece_moved()  {
+
+/// <summary>
+/// Checks and returns a map of pieces that have not moved from their initial positions
+/// </summary>
+/// <returns> A map of pieces that have not moved </returns>
+map<string, bool> Board::check_has_piece_moved() {
     std::array<std::string, 6> locations = { "a1", "a5", "a8", "h1", "h5", "h8" };
     map<string, bool> check;
 
@@ -289,20 +372,134 @@ map<string,bool> Board::check_has_piece_moved()  {
     }
     return check;
 }
-void Board::revert_has_moved_changes(map<string,bool> locations) {
+
+/// <summary>
+/// Reverts the moved status of pieces based on the given map
+/// </summary>
+/// <param name="locations"> Map of pieces that have not moved </param>
+void Board::revert_has_moved_changes(map<string, bool> locations) {
     for (const auto& piece : locations) {
         if (BoardGame[piece.first] == nullptr) continue;
         BoardGame[piece.first]->has_moved = false;
     }
-
 }
+
+/// <summary>
+/// Sets the check flag for the current player
+/// </summary>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
 void Board::set_check_flag(bool is_white_turn) {
     is_white_turn ? white_check_flag = true : black_check_flag = true;
 }
+
+/// <summary>
+/// Reverts the check flags for the current player
+/// </summary>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
 void Board::revert_checkmate_flags(bool is_white_turn) {
     is_white_turn ? white_check_flag = false : black_check_flag = false;
 }
-void Board::revert_casteling_flags(map<string, bool> locations,bool is_white_turn) {
+
+/// <summary>
+/// Reverts the castling flags and moved status of pieces based on the given map
+/// </summary>
+/// <param name="locations"> Map of pieces that have not moved </param>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+void Board::revert_casteling_flags(map<string, bool> locations, bool is_white_turn) {
     revert_has_moved_changes(locations);
     revert_checkmate_flags(is_white_turn);
+}
+
+/// <summary>
+/// Evaluates a move and updates its score
+/// </summary>
+/// <param name="move"> The move to evaluate </param>
+/// <param name="from"> Source location </param>
+/// <param name="to"> Destination location </param>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+void Board::evaluate_move(Move& move, const std::string& from, const std::string& to, bool is_white_turn) {
+    auto originalFrom = BoardGame[from];
+    auto originalTo = BoardGame[to];
+    perform_move(from, to);
+
+    if (check_for_self_checkmate(is_white_turn, BoardGame) == ImmediateCheck) {
+        move.score -= originalFrom->score;
+    }
+    else {
+        check_danger(move, to, is_white_turn);
+    }
+    check_threats(move, to, originalFrom, is_white_turn);
+    undo_move(from, to, originalFrom, originalTo);
+}
+
+/// <summary>
+/// Checks if a move puts the piece in danger and updates the move's score
+/// </summary>
+/// <param name="move"> The move to check </param>
+/// <param name="to"> Destination location </param>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+void Board::check_danger(Move& move, const std::string& to, bool is_white_turn) {
+    for (const auto& opponentPiece : BoardGame) {
+        if (opponentPiece.second != nullptr && opponentPiece.second->getColor() != is_white_turn) {
+            if (validate_move(opponentPiece.first, to, !is_white_turn) == validMovement) {
+                move.score -= 10;
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Checks if a move threatens a stronger opponent piece and updates the move's score
+/// </summary>
+/// <param name="move"> The move to check </param>
+/// <param name="to"> Destination location </param>
+/// <param name="originalFrom"> The original piece before the move </param>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+void Board::check_threats(Move& move, const std::string& to, const std::shared_ptr<Piece>& originalFrom, bool is_white_turn) {
+    for (const auto& opponentPiece : BoardGame) {
+        if (opponentPiece.second == nullptr || opponentPiece.second->getColor() == is_white_turn) {
+            continue;
+        }
+
+        std::string opponentFrom = opponentPiece.first;
+        if (validate_move(to, opponentFrom, is_white_turn) == validMovement) {
+            if (opponentPiece.second->score > originalFrom->score) {
+                move.score += opponentPiece.second->score - originalFrom->score;  // Add points for threatening a stronger opponent piece
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Suggests the best moves for the current player
+/// </summary>
+/// <param name="is_white_turn"> Indicates which player's turn it is </param>
+/// <param name="max_suggestions"> Maximum number of suggestions to return </param>
+/// <returns> A priority queue of the best moves </returns>
+PriorityQueue<Move, MyComparator> Board::suggest_moves(bool is_white_turn, int max_suggestions) {
+    PriorityQueue<Move, MyComparator> pq;
+    auto original_moves_data = check_has_piece_moved();
+    for (const auto& piece : BoardGame) {
+        if (piece.second == nullptr || piece.second->getColor() != is_white_turn) {
+            continue;
+        }
+        std::string from = piece.first;
+        for (const auto& piece2 : BoardGame) {
+            std::string to = piece2.first;
+            if (from == to) continue;
+
+            if (validate_move(from, to, is_white_turn) != validMovement) {
+                continue;
+            }
+            Move move(from, to);
+
+            if (piece2.second != nullptr) {
+                move.score += piece2.second->score;
+            }
+            evaluate_move(move, from, to, is_white_turn);
+            pq.push(move);
+        }
+    }
+    revert_casteling_flags(original_moves_data, is_white_turn);
+    return pq;
 }
