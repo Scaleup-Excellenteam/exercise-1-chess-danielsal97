@@ -1,4 +1,5 @@
 	#include "Chess.h"
+#include "CustomExceptions.h"
 
 // clear the screen "cls"
 void Chess::clear() const 
@@ -120,17 +121,21 @@ void Chess::showAskInput() const
 		cout << "Player 2 (Black - Small letters)   >> ";
 }
 // check if the source and dest are the same 
-bool Chess::isSame() const 
-{
-	return ((m_input[0] == m_input[2]) && (m_input[1] == m_input[3]));
-} 
+bool Chess::isSame() const {
+	if ((m_input[0] == m_input[2]) && (m_input[1] == m_input[3])) {
+		throw IllegalMoveException("Invalid move! Source and destination are the same.");
+	}
+	return false;
+}
 // check if the input is lockations at board
-bool Chess::isValid() const
-{
-	return ((('A' <= m_input[0]) && (m_input[0] <= 'H')) || (('a' <= m_input[0]) && (m_input[0] <= 'h')) &&
+bool Chess::isValid() const {
+	if (!((('A' <= m_input[0]) && (m_input[0] <= 'H')) || (('a' <= m_input[0]) && (m_input[0] <= 'h')) &&
 		(('1' <= m_input[1]) && (m_input[1] <= '8')) &&
 		(('A' <= m_input[2]) && (m_input[2] <= 'H')) || (('a' <= m_input[2]) && (m_input[2] <= 'h')) &&
-		(('1' <= m_input[3]) && (m_input[3] <= '8')));
+		(('1' <= m_input[3]) && (m_input[3] <= '8')))) {
+		throw InvalidInputException("Invalid input! Coordinates are out of bounds. basa sababa");
+	}
+	return true;
 }
 	
 // check if the input is exit or quit  

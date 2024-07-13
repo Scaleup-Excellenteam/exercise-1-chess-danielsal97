@@ -13,6 +13,7 @@
 #include "Knight.h"
 #include "Pawn.h"
 #include "PriorityQueue.h"
+
 struct CastlingMove {
     std::string rookFrom;
     std::string kingTo;
@@ -67,8 +68,8 @@ public:
     void revert_has_moved_changes(map<string, bool> locations);
     void revert_checkmate_flags(bool is_white_turn);
     void revert_casteling_flags(map<string, bool> locations, bool is_white_turn);
-    PriorityQueue<Move, MyComparator> suggest_moves(bool is_white_turn, int max_suggestions = 5);
-    void evaluate_move(Move& move, const std::string& from, const std::string& to, bool is_white_turn);
+    PriorityQueue<Move, MyComparator> suggest_moves(bool is_white_turn, int max_suggestions = 5 , int depth = 2);
+    void evaluate_move(Move& move, const std::string& from, const std::string& to, bool is_white_turn, int depth);
     void check_danger(Move& move, const std::string& to, bool is_white_turn);
     void check_threats(Move& move, const std::string& to, const std::shared_ptr<Piece>& originalFrom, bool is_white_turn);
 };

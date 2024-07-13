@@ -1,6 +1,7 @@
 #include "Board.h"
 
 #include <array>
+
 /// <summary>
 /// Initializes the board:
 /// 1. Creates keys for the board game
@@ -409,7 +410,6 @@ void Board::revert_casteling_flags(map<string, bool> locations, bool is_white_tu
     revert_has_moved_changes(locations);
     revert_checkmate_flags(is_white_turn);
 }
-
 /// <summary>
 /// Evaluates a move and updates its score
 /// </summary>
@@ -417,7 +417,8 @@ void Board::revert_casteling_flags(map<string, bool> locations, bool is_white_tu
 /// <param name="from"> Source location </param>
 /// <param name="to"> Destination location </param>
 /// <param name="is_white_turn"> Indicates which player's turn it is </param>
-void Board::evaluate_move(Move& move, const std::string& from, const std::string& to, bool is_white_turn) {
+/// <param name="depth"> Depth for move evaluation </param>
+void Board::evaluate_move(Move& move, const std::string& from, const std::string& to, bool is_white_turn, int depth = 2) {
     auto originalFrom = BoardGame[from];
     auto originalTo = BoardGame[to];
     perform_move(from, to);
@@ -427,8 +428,17 @@ void Board::evaluate_move(Move& move, const std::string& from, const std::string
     }
     else {
         check_danger(move, to, is_white_turn);
+        check_threats(move, to, originalFrom, is_white_turn);
+
+        if (depth > 0) {
+            auto opponentMoves = suggest_moves(!is_white_turn, 5, depth - 1);
+            if (opponentMoves.size() > 0) {
+                auto bestOpponentMove = opponentMoves.poll();
+                move.score -= bestOpponentMove.score;
+            }
+        }
     }
-    check_threats(move, to, originalFrom, is_white_turn);
+
     undo_move(from, to, originalFrom, originalTo);
 }
 
@@ -475,14 +485,17 @@ void Board::check_threats(Move& move, const std::string& to, const std::shared_p
 /// </summary>
 /// <param name="is_white_turn"> Indicates which player's turn it is </param>
 /// <param name="max_suggestions"> Maximum number of suggestions to return </param>
+/// <param name="depth"> Depth for move evaluation </param>
 /// <returns> A priority queue of the best moves </returns>
-PriorityQueue<Move, MyComparator> Board::suggest_moves(bool is_white_turn, int max_suggestions) {
+PriorityQueue<Move, MyComparator> Board::suggest_moves(bool is_white_turn, int max_suggestions, int depth) {
     PriorityQueue<Move, MyComparator> pq;
     auto original_moves_data = check_has_piece_moved();
+
     for (const auto& piece : BoardGame) {
         if (piece.second == nullptr || piece.second->getColor() != is_white_turn) {
             continue;
         }
+
         std::string from = piece.first;
         for (const auto& piece2 : BoardGame) {
             std::string to = piece2.first;
@@ -491,15 +504,17 @@ PriorityQueue<Move, MyComparator> Board::suggest_moves(bool is_white_turn, int m
             if (validate_move(from, to, is_white_turn) != validMovement) {
                 continue;
             }
+
             Move move(from, to);
 
             if (piece2.second != nullptr) {
                 move.score += piece2.second->score;
             }
-            evaluate_move(move, from, to, is_white_turn);
+            evaluate_move(move, from, to, is_white_turn, depth);
             pq.push(move);
         }
     }
+
     revert_casteling_flags(original_moves_data, is_white_turn);
     return pq;
 }
