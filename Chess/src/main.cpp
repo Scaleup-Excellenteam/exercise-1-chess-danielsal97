@@ -22,7 +22,7 @@ std::string getMoveMessage(PriorityQueue<Move, MyComparator>& suggestions) {
     return message;
 }
 int main() {
-    std::string board = "RNBQKBNRPPPPPPPP################################ppppppPprnbqkbnr";
+    std::string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr";
     std::string moveMessage;
     Chess a(board);
     Board b(board);
