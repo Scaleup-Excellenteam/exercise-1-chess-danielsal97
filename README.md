@@ -19,23 +19,14 @@ The algorithm aims to suggest the best moves for the current player using a prio
 
 Therefore, the overall complexity of the algorithm is \(O(n^3 \log k)\) due to the nested loops and the use of the priority queue. This is feasible given the constraints of a standard chess game.
 
+## Custom Exceptions
 
-# Custom Exceptions in Chess Class
+### InvalidCastlingException
+**Description:** InvalidCastlingException is thrown when a castling move is not allowed due to various reasons such as the path not being clear, pieces have moved previously, or castling is not allowed due to game rules.
 
-## InvalidInputException
+**Usage:** In the castling method, if any condition for a valid castling move is not met, the InvalidCastlingException is thrown with a message indicating the specific issue.
 
-### Description
-`InvalidInputException` is thrown when the input coordinates are out of bounds. This exception ensures that the input provided by the user is valid and within the acceptable range for a chessboard.
+### InvalidPromotionException
+**Description:** InvalidPromotionException is thrown when the promotion choice for a pawn is invalid. This ensures that the pawn is promoted to a valid piece.
 
-### Usage
-In the `isValid` method, if the input coordinates are found to be out of the acceptable range, the `InvalidInputException` is thrown with a message indicating that the input is invalid due to out-of-bounds coordinates.
-
----
-
-## IllegalMoveException
-
-### Description
-`IllegalMoveException` is thrown when the source and destination coordinates are the same. This exception ensures that a piece is not moved to the same location it started from.
-
-### Usage
-In the `isSame` method, if the source and destination coordinates are identical, the `IllegalMoveException` is thrown with a message indicating that the move is invalid because the source and destination are the same.
+**Usage:** In the pawnPromotion method, if the promotion choice does not match one of the valid pieces (Q, R, B, N) for the white plater or (q, r, b, n) for the black player , the InvalidPromotionException is thrown with a message indicating the invalid choice.

@@ -1,5 +1,5 @@
 #include "Board.h"
-
+#include "CustomExceptions.h"
 #include <array>
 
 /// <summary>
@@ -59,17 +59,13 @@ int Board::move_piece(const std::string& from, const std::string& to, bool is_wh
         is_white_turn ? white_check_flag = true : black_check_flag = true;
         return validation_res;
     }
-
     revert_casteling_flags(original_moves_data, is_white_turn);
-
     if (are_casteling_piece(from, to)) {
         validation_res = casteling(from, to, is_white_turn, BoardGame);
     }
-
     if (validation_res != validMovement) {
         return validation_res;
     }
-
     validation_res = validate_move(from, to, is_white_turn);
     if (validation_res != validMovement) return validation_res;
     auto original_form = BoardGame[from];
@@ -106,6 +102,7 @@ int Board::validate_move(const std::string& from, const std::string& to, bool is
     if (res != validMovement) return res;
     return validMovement;
 }
+
 
 bool Board::getTurn() {
     return turn;
@@ -212,50 +209,64 @@ bool Board::are_casteling_piece(const std::string& from, const std::string& to) 
         (dynamic_cast<Rook*>(fromPiece.get()) && dynamic_cast<King*>(toPiece.get()));
 }
 
+
 /// <summary>
-/// Handles the castling move
+/// Handles castling moves if legal, otherwise throws an exception
 /// </summary>
-/// <param name="from"> Source location </param>
-/// <param name="to"> Destination location </param>
+/// <param name="from"> Location of the piece you want to move </param>
+/// <param name="to"> Target location </param>
 /// <param name="is_white_turn"> Indicates which player's turn it is </param>
-/// <param name="board"> The game board </param>
-/// <returns> Status code indicating the result of the castling move </returns>
+/// <param name="board"> Current state of the board </param>
+/// <returns> Status code indicating the result of the move </returns>
 int Board::casteling(const std::string& from, const std::string& to, bool is_white_turn, std::map<std::string, std::shared_ptr<Piece>>& board) {
-    std::string command = from + to;
-    if (from > to) {
-        command = to + from;
-    }
-    if (is_clear_path(command.substr(0, 2), command.substr(2, 2))) {
-        auto it = castlingMoves.find(command);
-        if (it != castlingMoves.end()) {
-            const auto& move = it->second;
-
-            if (!is_castling_allowed(is_white_turn) ||
-                has_piece_moved(move.kingFrom, board) ||
-                has_piece_moved(move.rookFrom, board)) {
-                return InvalidMovement;
-            }
-            update_king_location(move.kingFrom, move.kingTo);
-            //store original values, for undoing it in cases that move cause check 
-            auto temp_kingFrom = BoardGame[move.kingFrom];
-            auto temp_kingTo = BoardGame[move.kingTo];
-            auto temp_rookFrom = BoardGame[move.rookFrom];
-            auto temp_rookTo = BoardGame[move.rookTo];
-            perform_move(move.kingFrom, move.kingTo);
-            perform_move(move.rookFrom, move.rookTo);
-            change_turn();
-
-            int validation_res = (check_for_self_checkmate(is_white_turn, board));
-            if (validation_res == validMovement) return valid_casteling;
-            update_king_location(move.kingTo, move.kingFrom);
-            undo_move(move.kingFrom, move.kingTo, temp_kingFrom, temp_kingTo);
-            undo_move(move.rookFrom, move.rookTo, temp_rookFrom, temp_rookTo);
-            change_turn();
-
-            return ImmediateCheck;
+  
+        std::string command = from + to;
+        if (from > to) {
+            command = to + from;
         }
-    }
-    return InvalidMovement;
+
+        if (!is_clear_path(command.substr(0, 2), command.substr(2, 2))) {
+            throw InvalidCastlingException("Path is not clear for castling.");
+        }
+
+        auto it = castlingMoves.find(command);
+        if (it == castlingMoves.end()) {
+            throw InvalidCastlingException("Invalid castling move.");
+        }
+
+        const auto& move = it->second;
+
+        if (!is_castling_allowed(is_white_turn) || has_piece_moved(move.kingFrom, board) || has_piece_moved(move.rookFrom, board)) {
+            throw InvalidCastlingException("Castling not allowed due to previous moves or rules.");
+        }
+
+        update_king_location(move.kingFrom, move.kingTo);
+
+        // Store original values, for undoing it in cases that move causes check
+        auto temp_kingFrom = BoardGame[move.kingFrom];
+        auto temp_kingTo = BoardGame[move.kingTo];
+        auto temp_rookFrom = BoardGame[move.rookFrom];
+        auto temp_rookTo = BoardGame[move.rookTo];
+
+        perform_move(move.kingFrom, move.kingTo);
+        perform_move(move.rookFrom, move.rookTo);
+        change_turn();
+
+        int validation_res = check_for_self_checkmate(is_white_turn, board);
+        if (validation_res == validMovement) {
+            return valid_casteling;
+        }
+
+        // Undo the moves if it causes a check
+        update_king_location(move.kingTo, move.kingFrom);
+        undo_move(move.kingFrom, move.kingTo, temp_kingFrom, temp_kingTo);
+        undo_move(move.rookFrom, move.rookTo, temp_rookFrom, temp_rookTo);
+        change_turn();
+
+        throw IllegalMoveException("Move causes self-checkmate.");
+    
+
+
 }
 
 /// <summary>
@@ -418,7 +429,7 @@ void Board::revert_casteling_flags(map<string, bool> locations, bool is_white_tu
 /// <param name="to"> Destination location </param>
 /// <param name="is_white_turn"> Indicates which player's turn it is </param>
 /// <param name="depth"> Depth for move evaluation </param>
-void Board::evaluate_move(Move& move, const std::string& from, const std::string& to, bool is_white_turn, int depth = 2) {
+void Board::evaluate_move(Move& move, const string& from, const string& to, bool is_white_turn, int depth) {
     auto originalFrom = BoardGame[from];
     auto originalTo = BoardGame[to];
     perform_move(from, to);
@@ -430,6 +441,12 @@ void Board::evaluate_move(Move& move, const std::string& from, const std::string
         check_danger(move, to, is_white_turn);
         check_threats(move, to, originalFrom, is_white_turn);
 
+        if (controls_center(to)) {
+            move.score += 5; 
+        }
+        int coverage_difference = calculate_coverage(is_white_turn) - calculate_coverage(!is_white_turn);
+        move.score += coverage_difference;
+
         if (depth > 0) {
             auto opponentMoves = suggest_moves(!is_white_turn, 5, depth - 1);
             if (opponentMoves.size() > 0) {
@@ -438,7 +455,6 @@ void Board::evaluate_move(Move& move, const std::string& from, const std::string
             }
         }
     }
-
     undo_move(from, to, originalFrom, originalTo);
 }
 
@@ -452,7 +468,7 @@ void Board::check_danger(Move& move, const std::string& to, bool is_white_turn) 
     for (const auto& opponentPiece : BoardGame) {
         if (opponentPiece.second != nullptr && opponentPiece.second->getColor() != is_white_turn) {
             if (validate_move(opponentPiece.first, to, !is_white_turn) == validMovement) {
-                move.score -= 10;
+                move.score -= opponentPiece.second->score;
             }
         }
     }
@@ -465,20 +481,43 @@ void Board::check_danger(Move& move, const std::string& to, bool is_white_turn) 
 /// <param name="to"> Destination location </param>
 /// <param name="originalFrom"> The original piece before the move </param>
 /// <param name="is_white_turn"> Indicates which player's turn it is </param>
-void Board::check_threats(Move& move, const std::string& to, const std::shared_ptr<Piece>& originalFrom, bool is_white_turn) {
+void Board::check_threats(Move& move, const std::string& to, const std::shared_ptr<Piece>& originalFrom, bool is_white_turn)
+{
     for (const auto& opponentPiece : BoardGame) {
         if (opponentPiece.second == nullptr || opponentPiece.second->getColor() == is_white_turn) {
             continue;
         }
 
         std::string opponentFrom = opponentPiece.first;
-        if (validate_move(to, opponentFrom, is_white_turn) == validMovement) {
-            if (opponentPiece.second->score > originalFrom->score) {
+        if (validate_move(to, opponentFrom, is_white_turn) == validMovement)
+        {
+            if (opponentPiece.second->score > originalFrom->score)
+            {
                 move.score += opponentPiece.second->score - originalFrom->score;  // Add points for threatening a stronger opponent piece
             }
         }
     }
 }
+
+bool Board::controls_center(const string& position) {
+    list <string> center_positions = { "d4", "d5", "e4", "e5" };
+    return std::find(center_positions.begin(), center_positions.end(), position) != center_positions.end();
+}
+
+int Board::calculate_coverage(bool is_white_turn) {
+    int coverage = 0;
+    for (const auto& piece : BoardGame) {
+        if (piece.second != nullptr && piece.second->getColor() == is_white_turn) {
+            for (const auto& target : BoardGame) {
+                if (validate_move(piece.first, target.first, is_white_turn) == validMovement) {
+                    coverage++;
+                }
+            }
+        }
+    }
+    return coverage;
+}
+
 
 /// <summary>
 /// Suggests the best moves for the current player
@@ -517,4 +556,31 @@ PriorityQueue<Move, MyComparator> Board::suggest_moves(bool is_white_turn, int m
 
     revert_casteling_flags(original_moves_data, is_white_turn);
     return pq;
+}
+
+void Board::pawnPromotion(const std::string& to, bool is_white_turn) {
+    char pawn = is_white_turn ? 'P' : 'p';
+    int last_rank = is_white_turn ? 'h' : 'a';
+    if (BoardGame[to]->Pname == pawn && (to[0] - 0) == last_rank) {
+        char promotion_choice;
+        string legal_pieces = is_white_turn ? "Q, R, B, N" : "q, r, b, n";
+
+        bool valid_choice = false;
+        while (!valid_choice) {
+            try {
+                cout << "Promote pawn to (" << legal_pieces << "): ";
+                cin >> promotion_choice;
+
+                if (legal_pieces.find(promotion_choice) == string::npos) {
+                    throw InvalidPromotionException("Invalid promotion choice. Please choose Q, R, B, or N.");
+                }
+
+                BoardGame[to] = createPiece(promotion_choice);
+                valid_choice = true;
+            }
+            catch (const InvalidPromotionException& e) {
+                cerr << "Error: " << e.what() << endl;
+            }
+        }
+    }
 }

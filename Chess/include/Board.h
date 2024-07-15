@@ -72,6 +72,9 @@ public:
     void evaluate_move(Move& move, const std::string& from, const std::string& to, bool is_white_turn, int depth);
     void check_danger(Move& move, const std::string& to, bool is_white_turn);
     void check_threats(Move& move, const std::string& to, const std::shared_ptr<Piece>& originalFrom, bool is_white_turn);
+    void pawnPromotion(const string& to, bool is_white_turn);
+    bool controls_center(const std::string& position);
+    int calculate_coverage(bool is_white_turn);
 };
 
 #endif // BOARD_H

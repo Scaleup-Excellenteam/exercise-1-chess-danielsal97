@@ -24,4 +24,24 @@ private:
     std::string msg_;
 };
 
+class InvalidCastlingException : public std::exception {
+public:
+    InvalidCastlingException(const std::string& message) : msg_(message) {}
+    virtual const char* what() const noexcept override {
+        return msg_.c_str();
+    }
+private:
+    std::string msg_;
+};
+
+class InvalidPromotionException : public std::exception {
+public:
+    InvalidPromotionException(const std::string& message) : msg_(message) {}
+    virtual const char* what() const noexcept override {
+        return msg_.c_str();
+    }
+private:
+    std::string msg_;
+};
+
 #endif // CUSTOMEXCEPTIONS_H

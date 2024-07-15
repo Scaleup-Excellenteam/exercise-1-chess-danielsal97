@@ -122,20 +122,14 @@ void Chess::showAskInput() const
 }
 // check if the source and dest are the same 
 bool Chess::isSame() const {
-	if ((m_input[0] == m_input[2]) && (m_input[1] == m_input[3])) {
-		throw IllegalMoveException("Invalid move! Source and destination are the same.");
-	}
-	return false;
+	return ((m_input[0] == m_input[2]) && (m_input[1] == m_input[3]));
 }
 // check if the input is lockations at board
 bool Chess::isValid() const {
-	if (!((('A' <= m_input[0]) && (m_input[0] <= 'H')) || (('a' <= m_input[0]) && (m_input[0] <= 'h')) &&
+	return (((('A' <= m_input[0]) && (m_input[0] <= 'H')) || (('a' <= m_input[0]) && (m_input[0] <= 'h')) &&
 		(('1' <= m_input[1]) && (m_input[1] <= '8')) &&
 		(('A' <= m_input[2]) && (m_input[2] <= 'H')) || (('a' <= m_input[2]) && (m_input[2] <= 'h')) &&
-		(('1' <= m_input[3]) && (m_input[3] <= '8')))) {
-		throw InvalidInputException("Invalid input! Coordinates are out of bounds. basa sababa");
-	}
-	return true;
+		(('1' <= m_input[3]) && (m_input[3] <= '8'))));
 }
 	
 // check if the input is exit or quit  
@@ -305,3 +299,4 @@ void Chess::setCodeResponse(int codeResponse)
 		((41 == codeResponse) || (codeResponse == 42) || (codeResponse == 43) || (codeResponse == 44)))
 		m_codeResponse = codeResponse;
 }
+
