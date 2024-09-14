@@ -1,19 +1,23 @@
 #include "Bishop.h"
+#include "path_helpers.h"
+#include <cmath>
+#include <algorithm>
+#include <string>
+#include <map>
+#include <memory>
 
+/// <summary>
+/// Checks if the Bishop's movement is valid
+/// </summary>
+/// <param name="board"> The game board </param>
+/// <param name="from"> The starting position of the Bishop </param>
+/// <param name="to"> The target position of the Bishop </param>
+/// <returns> Status code indicating if the movement is valid or not </returns>
 int Bishop::valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to) {
-    if (abs(from[0] - to[0]) == abs(from[1] - to[1])) {
-        char start_x = min(from[0], to[0]);
-        char end_x = max(from[0], to[0]);
-        char start_y = min(from[1], to[1]);
-        char end_y = max(from[1], to[1]);
-        for (char x = start_x + 1, y = start_y + 1; x < end_x && y < end_y; x++, y++) {
-            std::string pos = std::string(1, x) + std::string(1, y);
-
-            if (board.find(pos)->second != nullptr) {
-
-                return 21;
-            }
+    if (std::abs(from[0] - to[0]) == std::abs(from[1] - to[1])) {
+        if (isPathClearDiagonal(board, from[0], from[1], to[0], to[1])) {
+            return validMovement; 
         }
-        return 42;
     }
+    return InvalidMovement; 
 }

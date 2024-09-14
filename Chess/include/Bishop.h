@@ -8,7 +8,7 @@
 class Bishop : public Piece {
 
 public:
-    explicit Bishop(char a) : Piece(a) {};
+    explicit Bishop(char a) : Piece(a,3) {};
 
     int valid_movment(const std::map<std::string, std::shared_ptr<Piece>>& board, const std::string& from, const std::string& to);
     

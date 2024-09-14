@@ -1,4 +1,5 @@
 	#include "Chess.h"
+#include "CustomExceptions.h"
 
 // clear the screen "cls"
 void Chess::clear() const 
@@ -120,17 +121,15 @@ void Chess::showAskInput() const
 		cout << "Player 2 (Black - Small letters)   >> ";
 }
 // check if the source and dest are the same 
-bool Chess::isSame() const 
-{
+bool Chess::isSame() const {
 	return ((m_input[0] == m_input[2]) && (m_input[1] == m_input[3]));
-} 
+}
 // check if the input is lockations at board
-bool Chess::isValid() const
-{
-	return ((('A' <= m_input[0]) && (m_input[0] <= 'H')) || (('a' <= m_input[0]) && (m_input[0] <= 'h')) &&
+bool Chess::isValid() const {
+	return (((('A' <= m_input[0]) && (m_input[0] <= 'H')) || (('a' <= m_input[0]) && (m_input[0] <= 'h')) &&
 		(('1' <= m_input[1]) && (m_input[1] <= '8')) &&
 		(('A' <= m_input[2]) && (m_input[2] <= 'H')) || (('a' <= m_input[2]) && (m_input[2] <= 'h')) &&
-		(('1' <= m_input[3]) && (m_input[3] <= '8')));
+		(('1' <= m_input[3]) && (m_input[3] <= '8'))));
 }
 	
 // check if the input is exit or quit  
@@ -138,6 +137,36 @@ bool Chess::isExit() const
 {
 	return ((m_input == "exit") || (m_input == "quit") || (m_input == "EXIT") || (m_input == "QUIT"));
 }
+
+// execute the casteling for both sides movement on board 
+void Chess::excuteCasteling()
+{
+	int row = m_input[0] - 'a';
+	int fromCol = m_input[1] - '1';
+	int toCol = m_input[3] - '1';
+	int colDifference = std::abs(toCol - fromCol);
+
+	int rookCol = min(fromCol, toCol);
+	int kingCol = max(fromCol, toCol);
+
+	if (colDifference == 4) {
+		m_boardString[row * 8 + (rookCol + 3)] = m_boardString[(row * 8) + fromCol];
+		m_boardString[row * 8 + (kingCol - 2)] = m_boardString[(row * 8) + toCol];
+		m_boardString[row * 8 + rookCol] = '#';
+		m_boardString[row * 8 + kingCol] = '#';
+	}
+	else if (colDifference == 3) { 
+		m_boardString[row * 8 + (rookCol + 2)] = m_boardString[(row * 8) + fromCol];
+		m_boardString[row * 8 + (kingCol - 2)] = m_boardString[(row * 8) + toCol];
+		m_boardString[row * 8 + rookCol] = '#';
+		m_boardString[row * 8 + kingCol] = '#';
+	}
+
+	setPieces(); 
+
+
+}
+
 // execute the movement on board 
 void Chess::excute()
 {
@@ -197,6 +226,20 @@ void Chess::doTurn()
 		m_msg = "the last movement was legal \n";
 		break;
 	}
+	case 43:
+	{
+		excuteCasteling();
+		m_turn = !m_turn;
+		m_msg = "the last movment was legal - Castling\n";
+		break;
+	}
+	
+	case 44:
+	{
+		m_msg = "checkMate ";
+		cout << "game is finished";
+		exit(0);
+	}
 	}
 }
 
@@ -209,7 +252,7 @@ Chess::Chess(const string& start)
 }
 
 // get the source and destination 
-string Chess::getInput()
+string Chess::getInput(const string& suggestedMove)
 {
 	static bool isFirst = true;
 
@@ -219,6 +262,7 @@ string Chess::getInput()
 		doTurn(); 
 
 	displayBoard();
+	cout<< suggestedMove <<endl;
 	showAskInput();
 
 	cin >> m_input;
@@ -252,6 +296,7 @@ void Chess::setCodeResponse(int codeResponse)
 {
 	if (((11 <= codeResponse) && (codeResponse <= 13)) ||
 		((21 == codeResponse) || (codeResponse == 31)) ||
-		((41 == codeResponse) || (codeResponse == 42)))
+		((41 == codeResponse) || (codeResponse == 42) || (codeResponse == 43) || (codeResponse == 44)))
 		m_codeResponse = codeResponse;
 }
+

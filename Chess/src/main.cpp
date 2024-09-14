@@ -1,42 +1,55 @@
-// Chess 
 #include "Chess.h"
 #include "Board.h"
-int main()
-{
-	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
-	//string board = "RNBQKBNR################################################rnbqkbnr";
+#include "CustomExceptions.h"
+#include <iostream>
+std::string getMoveMessage(PriorityQueue<Move, MyComparator>& suggestions) {
+    std::string message = "Recommended moves: ";
+    int count = 0;
 
-//	string board = "##########K###############################R#############r#r#####";
-	Chess a(board);
-	Board b(board);
-	int codeResponse = 0;
-	string res = a.getInput();
-	bool is_white_turn = true;
-	while (res != "exit")
-	{
-		/* 
-		codeResponse value : 
-		Illegal movements : 
-		11 - there is not piece at the source  
-		12 - the piece in the source is piece of your opponent
-		13 - there one of your pieces at the destination 
-		21 - illegal movement of that piece 
-		31 - this movement will cause you checkmate
+    while (count < 3 && suggestions.size() > 0) {
+        auto suggestedMove = suggestions.poll();
+        if (count > 0) {
+            message += ", ";
+        }
+        message += suggestedMove.from + suggestedMove.to;
+        count++;
+    }
 
-		legal movements : 
-		41 - the last movement was legal and cause check 
-		42 - the last movement was legal, next turn 
-		*/
+    if (count == 0) {
+        return "No suggested move available.";
+    }
 
-		/**/ 
-		codeResponse = b.move_piece(res.substr(0, 2), res.substr(2, 4),is_white_turn);
-		is_white_turn = b.getTurn();
-		/**/
+    return message;
+}
+int main() {
+    std::string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr";
+    std::string moveMessage;
+    Chess a(board);
+    Board b(board);
+    int codeResponse = 0;
+    bool is_white_turn = true;
+    auto suggestions = b.suggest_moves(is_white_turn, 5, 2);
 
-		a.setCodeResponse(codeResponse);
-		res = a.getInput(); 
-	}
 
-	cout << endl << "Exiting " << endl; 
-	return 0;
+    std::string res = a.getInput(getMoveMessage(suggestions));
+    
+
+    while (res != "exit") {
+        try {
+            codeResponse = b.move_piece(res.substr(0, 2), res.substr(2, 2), is_white_turn);
+            is_white_turn = b.getTurn();
+
+            a.setCodeResponse(codeResponse);
+            suggestions = b.suggest_moves(is_white_turn, 5, 2);
+
+            res = a.getInput(getMoveMessage(suggestions));
+        }
+        catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            moveMessage = e.what();
+            res = a.getInput(moveMessage);
+        }
+    }
+    std::cout << "Exiting " << std::endl;
+    return 0;
 }
